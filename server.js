@@ -7,7 +7,8 @@ import socketRedis from 'socket.io-redis'
 import redis from 'redis'
 
 import router from './router'
-import messageController from './controllers/chat.controller'
+import chatHandler from './handlers/chat.handler'
+import roomHandler from './handlers/room.handler'
 
 let app = express()
 let redisServer = redis.createClient(6379)
@@ -73,6 +74,7 @@ chatNS.on('connection', (socket) => {
     })
     socket.on('create room', (room, creator) => {
         socket.join(room)
+        roomHandler.createGroup(room, creator, creator)
         console.log(io.sockets.adapter.rooms)
         chatNS.to(room).emit('Welcome', "Welcome to " + room + ", " + socket.id)
         socket.on('message', (from, message) => {
@@ -81,10 +83,10 @@ chatNS.on('connection', (socket) => {
                 console.log(from + " is says " + message)
             }
             chatNS.to(room).emit('message', message)
-            messageController.postChat(from, room, message, 'Group')
+            chatHandler.postChat(from, room, message, 'Group')
         })
-        socket.on('leaving room', (userId) => {
-            chatNS.to(room).emit(username + " is left " + room)
+        socket.on('leaving room', (username, userId) => {
+            chatNS.to(room).emit('Group Announcement', username + " is left " + room)
         })
     })
 })
