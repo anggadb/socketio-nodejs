@@ -1,0 +1,42 @@
+{
+  "name": "chat-app-socket-io",
+  "version": "1.0.0",
+  "description": "The app chat for testing socket io",
+  "main": "server.js",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "dotenv": "^8.1.0",
+    "express": "^4.17.1",
+    "mysql2": "^1.7.0",
+    "nodemon": "^1.19.3",
+    "redis": "^2.8.0",
+    "sequelize": "^5.19.2",
+    "sequelize-cli": "^5.5.1",
+    "socket.io": "^2.3.0",
+    "socket.io-redis": "^5.2.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.6.2",
+    "@babel/core": "^7.6.2",
+    "@babel/node": "^7.6.2",
+    "@babel/preset-env": "^7.6.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon --exec babel-node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anggadb/chat-app-socket-io.git"
+  },
+  "keywords": [
+    "NodeJS",
+    "SocketIO"
+  ],
+  "author": "Angga Bachtiar",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/anggadb/chat-app-socket-io/issues"
+  },
+  "homepage": "https://github.com/anggadb/chat-app-socket-io#readme"
+}
