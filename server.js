@@ -39,11 +39,17 @@ chatNS.on('connection', (socket) => {
             console.log(socket.id + " is left")
         }
     })
-    socket.on('typing', (from) => {
+    socket.on('typing', (username) => {
         if (stage === "development") {
-            console.log(from + " is typing")
+            console.log(username + " is typing")
         }
-        socket.broadcast.emit('typing', from + " is typing")
+        socket.broadcast.emit('typing', username + " is typing")
+    })
+    socket.on('isRead', (username) => {
+        socket.emit('isRead', {
+            isRead: true,
+            sender: username
+        })
     })
     socket.on('off', (userId, username) => {
         redisServer.DEL("user:" + userId)
@@ -67,16 +73,12 @@ chatNS.on('connection', (socket) => {
     // socket.on('send image', (from, to, img) => {
 
     // })
-    socket.on('private chat', (from, to, message) => {
+    socket.on('private chat', (senderId, recieverId, message, recieverSocket) => {
+        chatNS.to(recieverSocket).emit('private chat', message)
+        chatHandler.postChat(senderId, recieverId, message, "Private")
         if (stage === "development") {
-            console.log(from + " is saying " + message + " to " + to + ' with ID : ' + socket.id)
+            console.log(socket.id + " is saying " + message + " to " + socketId + ' with ID : ')
         }
-        socket.on('isRead', (from) => {
-            socket.emit({
-                isRead: true,
-                sender: from
-            })
-        })
     })
     socket.on('create room', (room, creator) => {
         socket.join(room)
@@ -91,7 +93,7 @@ chatNS.on('connection', (socket) => {
             chatNS.to(room).emit('message', message)
             chatHandler.postChat(from, room, message, 'Group')
         })
-        socket.on('leaving room', (username, userId) => {
+        socket.on('leaving room', (username) => {
             chatNS.to(room).emit('Group Announcement', username + " is left " + room)
         })
     })
