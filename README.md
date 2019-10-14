@@ -9,6 +9,6 @@
 8. Run "npx sequelize-cli db:seed:all" for initial insert data to users table
 
 ## ENVIRONMENT CONFIGURATION
-Use this command pattern to run this project npm start *port* *environment*
-ex: npm start 3001 development
+Use this command pattern to run this project npm start *port* *environment*  
+ex: npm start 3001 development  
 nb: if the port and environment aren't defined, then default values are in .env file
