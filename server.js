@@ -82,7 +82,7 @@ chatNS.on('connection', (socket) => {
     })
     socket.on('create room', (room, creator) => {
         socket.join(room)
-        roomHandler.createGroup(room, creator, creator)
+        // roomHandler.createGroup(room, creator, creator)
         console.log(io.sockets.adapter.rooms)
         chatNS.to(room).emit('Welcome', "Welcome to " + room + ", " + socket.id)
         socket.on('message', (from, message) => {
