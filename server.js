@@ -45,15 +45,21 @@ chatNS.on('connection', (socket) => {
         }
         socket.broadcast.emit('typing', from + " is typing")
     })
+    socket.on('off', (userId, username) => {
+        redisServer.DEL("user:" + userId)
+        if (stage === "development") {
+            console.log(username + " is off")
+        }
+    })
     socket.on('activated', (username, userId) => {
         let user = {
             name: username,
             id: userId,
             socketId: socket.id
         }
-        redisServer.SET("user:"+userId, JSON.stringify(user))
+        redisServer.SET("user:" + userId, JSON.stringify(user))
         if (stage === "development") {
-            redisServer.GET("user:"+userId, (err, data) => {
+            redisServer.GET("user:" + userId, (err, data) => {
                 console.log(data)
             })
         }
