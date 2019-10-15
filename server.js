@@ -75,15 +75,14 @@ chatNS.on('connection', (socket) => {
     // })
     socket.on('private chat', (senderId, recieverId, message, recieverSocket) => {
         chatNS.to(recieverSocket).emit('private chat', message)
-        chatHandler.postChat(senderId, recieverId, message, "Private")
+        chatHandler.postChat(senderId, recieverId, "Private", message)
         if (stage === "development") {
             console.log(socket.id + " is saying " + message + " to " + socketId + ' with ID : ')
         }
     })
-    socket.on('create room', (room, creator) => {
+    socket.on('create room', (room, creator, userId) => {
         socket.join(room)
         // roomHandler.createGroup(room, creator, creator)
-        console.log(io.sockets.adapter.rooms)
         chatNS.to(room).emit('Welcome', "Welcome to " + room + ", " + socket.id)
         socket.on('message', (from, message) => {
             if (stage === 'development') {

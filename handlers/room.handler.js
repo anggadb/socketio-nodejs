@@ -5,7 +5,7 @@ exports.createGroup = async (name, participants, creator) => {
         name: name,
         participants: participants,
         creator: creator
-    },
+    }
     try{
         return model.Chatroom.create(data).then((response) => {
             if(!response){
