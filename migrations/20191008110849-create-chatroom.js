@@ -8,11 +8,8 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      chats: {
-        type: Sequelize.INTEGER
-      },
       participants: {
-        type: Sequelize.INTEGER
+        type: Sequelize.JSON
       },
       name: {
         type: Sequelize.STRING
@@ -22,7 +19,8 @@ module.exports = {
         references: {
           model: "Users",
           key: "id"
-        }
+        },
+        onDelete: 'cascade'
       },
       createdAt: {
         allowNull: false,

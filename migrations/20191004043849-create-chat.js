@@ -8,18 +8,31 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      room: {
-        type: Sequelize.STRING
-      },
-      participantId: {
+      sender: {
         type: Sequelize.INTEGER,
+        allowNull: false,
         references: {
           model: "Users",
           key: "id"
-        }
+        },
+        onDelete: 'cascade'
+      },
+      reciever: {
+        type: Sequelize.INTEGER,
+        allowNull: false
       },
       message: {
         type: Sequelize.TEXT
+      },
+      imagePath: {
+        type: Sequelize.STRING
+      },
+      type: {
+        type: Sequelize.ENUM('Private', 'Group'),
+        allowNull: false
+      },
+      readers: {
+        type: Sequelize.JSON
       },
       createdAt: {
         allowNull: false,
