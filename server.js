@@ -5,6 +5,7 @@ import http from 'http'
 import socketio from 'socket.io'
 import socketRedis from 'socket.io-redis'
 import redis from 'redis'
+import path from 'path'
 
 import router from './router'
 import chatHandler from './handlers/chat.handler'
@@ -18,6 +19,9 @@ app.use(bodyParser.urlencoded({
     extended: true
 }))
 app.use(process.env.API_PREFIX, router)
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname + '/index.html'))
+})
 
 let stage = process.argv[3] || "development"
 let port = parseInt(process.argv[2]) || process.env.PORT
@@ -97,7 +101,7 @@ chatNS.on('connection', (socket) => {
         })
     })
 })
-server.listen(port, (err) => {
+server.listen(port, '0.0.0.0', (err) => {
     if (err) throw err
     console.log("Server berjalan di port " + port + " dengan status " + stage)
 })

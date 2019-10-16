@@ -1,6 +1,6 @@
 import model from '../models/index'
 
-exports.postChat = async (sender, reciever, type, message, image, req, res) => {
+exports.postChat = async (sender, reciever, message, type, image, req, res) => {
     let data = {
         sender: sender,
         reciever: reciever,
