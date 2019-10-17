@@ -11,7 +11,7 @@ import router from './router'
 import chatHandler from './handlers/chat.handler'
 import roomHandler from './handlers/room.handler'
 
-let testingRoute = '/'
+let testingRoute = '/index'
 let app = express()
 let redisServer = redis.createClient(6379)
 
