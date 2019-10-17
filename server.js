@@ -11,7 +11,6 @@ import router from './router'
 import chatHandler from './handlers/chat.handler'
 import roomHandler from './handlers/room.handler'
 
-let testingRoute = '/index'
 let app = express()
 let redisServer = redis.createClient(6379)
 
@@ -20,9 +19,9 @@ app.use(bodyParser.urlencoded({
     extended: true
 }))
 app.use(process.env.API_PREFIX, router)
-app.get(testingRoute, (req, res) => {
-    res.sendFile(path.join(__dirname + '/index.html'))
-})
+// app.get('/', (req, res) => {
+//     res.sendFile(path.join(__dirname + '/index.html'))
+// })
 
 let stage = process.argv[3] || "development"
 let port = parseInt(process.argv[2]) || process.env.PORT
