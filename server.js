@@ -11,6 +11,7 @@ import router from './router'
 import chatHandler from './handlers/chat.handler'
 import roomHandler from './handlers/room.handler'
 
+let testingRoute = '/'
 let app = express()
 let redisServer = redis.createClient(6379)
 
@@ -19,7 +20,7 @@ app.use(bodyParser.urlencoded({
     extended: true
 }))
 app.use(process.env.API_PREFIX, router)
-app.get('/', (req, res) => {
+app.get(testingRoute, (req, res) => {
     res.sendFile(path.join(__dirname + '/index.html'))
 })
 
