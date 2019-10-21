@@ -19,9 +19,9 @@ app.use(bodyParser.urlencoded({
     extended: true
 }))
 app.use(process.env.API_PREFIX, router)
-// app.get('/', (req, res) => {
-//     res.sendFile(path.join(__dirname + '/index.html'))
-// })
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname + '/index.html'))
+})
 
 let stage = process.argv[3] || "development"
 let port = parseInt(process.argv[2]) || process.env.PORT
@@ -31,8 +31,8 @@ let io = socketio(server).adapter(socketRedis({
     port: 6379
 }))
 // use this for namespace in multi-node/microservice
-// let chatNS = io.of('/chat')
-let chatNS = io
+let chatNS = io.of('/chat')
+// let chatNS = io
 
 chatNS.on('connection', (socket) => {
     if (stage === "development") {
@@ -61,15 +61,15 @@ chatNS.on('connection', (socket) => {
             console.log(username + " is off")
         }
     })
-    socket.on('activated', (username, userId) => {
+    socket.on('activated', (data) => {
         let user = {
-            name: username,
-            id: userId,
-            socketId: socket.id
+            name: data.username,
+            id: data.userId,
+            socketId: data.socketId
         }
-        redisServer.SET("user:" + userId, JSON.stringify(user))
+        redisServer.SET("user:" + data.userId, JSON.stringify(user))
         if (stage === "development") {
-            redisServer.GET("user:" + userId, (err, data) => {
+            redisServer.GET("user:" + data.userId, (err, data) => {
                 console.log(data)
             })
         }

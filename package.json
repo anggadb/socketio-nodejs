@@ -23,7 +23,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon --exec babel-node server.js"
+    "start": "nodemon --exec babel-node server.js",
+    "sync-models": "sequelize-auto -o './models/' -d chattdb -h localhost -u root -x password -e mysql"
   },
   "repository": {
     "type": "git",
