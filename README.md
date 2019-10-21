@@ -15,7 +15,7 @@ ex: npm start 3001 development
 nb: if the port and environment aren't defined, then default values are in .env file
 
 ## OPTIONAL DEPEDENCIES
-Optional depedency for synchronous database schema to models file
-1. Install MySQL dialect for NodeJS globally, run in terminal 'npm i -g mysql'
-2. Install Sequelize-Auto, run in terminal 'npm i -g sequelize-auto'
+Optional depedency for synchronous database schema to models file  
+1. Install MySQL dialect for NodeJS globally, run in terminal 'npm i -g mysql'  
+2. Install Sequelize-Auto, run in terminal 'npm i -g sequelize-auto'  
 3. Run in terminal "npm run sync-models" everytime you migrate sequelize
