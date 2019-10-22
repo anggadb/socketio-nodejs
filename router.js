@@ -12,6 +12,6 @@ router.get('/getAllUsers', userController.getAllUsers)
 router.post('/postLoginUser', userController.postLoginUser)
 
 // Chat routes
-router.get('/getMessageById', chatController.getMessageById)
+router.get('/getMessageByRoom', chatController.getMessageByRoom)
 
 module.exports = router;
