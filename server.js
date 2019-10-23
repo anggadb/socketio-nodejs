@@ -55,49 +55,79 @@ chatNS.on('connection', (socket) => {
             sender: username
         })
     })
-    socket.on('off', (userId, username) => {
-        redisServer.DEL("user:" + userId)
+    socket.on('off', (data) => {
+        redisServer.DEL("user:" + data.userId)
         if (stage === "development") {
-            console.log(username + " is off")
+            console.log(data.username + " is off")
         }
     })
     socket.on('activated', (data) => {
         let user = {
             name: data.username,
-            id: data.userId,
+            id: data.id,
             socketId: data.socketId
         }
-        redisServer.SET("user:" + data.userId, JSON.stringify(user))
-        if (stage === "development") {
-            redisServer.GET("user:" + data.userId, (err, data) => {
-                console.log(data)
-            })
-        }
+        redisServer.HEXISTS("online", "user" + data.userId, (err, data) => {
+            if (data == false) {
+                if (stage === "development") {
+                    console.log("User haven't saved")
+                }
+                redisServer.HSET("online", "user" + user.id, JSON.stringify(user))
+                if (stage === "development") {
+                    redisServer.HGET("online", "user" + user.id, (err, res) => {
+                        console.log(res)
+                    })
+                }
+            }
+        })
     })
     // socket.on('send image', (from, to, img) => {
 
     // })
-    socket.on('private chat', (senderId, recieverId, message, recieverSocket) => {
-        chatNS.to(recieverSocket).emit('private chat', message)
-        chatHandler.postChat(senderId, recieverId, "Private", message)
+    socket.on('get-online-users', () => {
+        redisServer.HKEYS("online", (err, data) => {
+            console.log(data)
+            socket.emit('get-online-users', data)
+        })
+    })
+    socket.on('private-chat', (data) => {
+        chatNS.to(data.recieverSocket).emit('private chat', data.message)
+        chatHandler.postChat({
+            sender: data.sender,
+            reciever: data.reciever,
+            message: data.message || null,
+            imagePath: data.imageName || null,
+            readers: [data.sender]
+        })
         if (stage === "development") {
-            console.log(socket.id + " is saying " + message + " to " + socketId + ' with ID : ')
+            console.log(socket.id + " is saying " + data.message + " to " + data.recieverSocket)
         }
     })
-    socket.on('create room', (room, creator, userId) => {
-        socket.join(room)
-        // roomHandler.createGroup(room, creator, creator)
-        chatNS.to(room).emit('Welcome', "Welcome to " + room + ", " + socket.id)
-        socket.on('message', (from, message) => {
-            if (stage === 'development') {
-                console.log(socket.rooms)
-                console.log(from + " is says " + message)
-            }
-            chatNS.to(room).emit('message', message)
-            chatHandler.postChat(from, room, message, 'Group')
+    socket.on('create-room', (data) => {
+        socket.join(data.roomName)
+        roomHandler.createGroup({
+            participants: data.participants,
+            name: data.roomName,
+            creator: data.creator,
+            type: data.type
         })
-        socket.on('leaving room', (username) => {
-            chatNS.to(room).emit('Group Announcement', username + " is left " + room)
+        chatNS.to(data.roomName).emit('Welcome', "Welcome to " + data.roomName + ", " + socket.id)
+    })
+    socket.on('leaving-room', (data) => {
+        chatNS.to(data.roomName).emit('Group Announcement', data.username + " is left " + data.roomName)
+    })
+    socket.on('group-message', (data) => {
+        if (stage === 'development') {
+            console.log(socket.rooms)
+            console.log(from + " is says " + message)
+        }
+        chatNS.to(data.socketRoom).emit('group-message', data.message)
+        chatHandler.postChat({
+            sender: data.sender,
+            reciever: data.reciever,
+            chat: data.message || null,
+            image: data.imageName || null,
+            readers: [data.sender]
         })
     })
 })

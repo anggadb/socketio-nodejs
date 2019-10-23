@@ -5,17 +5,11 @@ let op = operator.Op
 
 exports.getAllUsers = async (req, res) => {
     try {
-        let users = await model.User.findAll({})
-        if (users.length > 0) {
-            return res.status(200).send({
-                data: users,
-                total: users.length
-            })
-        } else {
-            return res.status(404).send({
-                error: "Data kosong"
-            })
-        }
+        let users = await model.Users.findAll({})
+        return res.status(200).send({
+            data: users,
+            total: users.length
+        })
     } catch (error) {
         console.log(error)
         res.status(500).send({

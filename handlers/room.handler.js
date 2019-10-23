@@ -1,11 +1,6 @@
 import model from '../models/index'
 
-exports.createGroup = async (name, participants, creator) => {
-    let data = {
-        name: name,
-        participants: participants,
-        creator: creator
-    }
+exports.createGroup = async (data) => {
     try{
         return model.Chatroom.create(data).then((response) => {
             if(!response){
