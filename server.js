@@ -67,28 +67,36 @@ chatNS.on('connection', (socket) => {
             id: data.id,
             socketId: data.socketId
         }
-        redisServer.HEXISTS("online", "user" + data.userId, (err, data) => {
-            if (data == false) {
+        redisServer.HEXISTS("online", data.id, (err, res) => {
+            if (res == false) {
                 if (stage === "development") {
                     console.log("User haven't saved")
                 }
-                redisServer.HSET("online", "user" + user.id, JSON.stringify(user))
+                redisServer.HSET("online", data.id, JSON.stringify(user))
                 if (stage === "development") {
-                    redisServer.HGET("online", "user" + user.id, (err, res) => {
+                    redisServer.HGET("online", "user" + data.id, (err, res) => {
                         console.log(res)
                     })
                 }
             }
         })
     })
-    // socket.on('send image', (from, to, img) => {
-
-    // })
     socket.on('get-online-users', () => {
         redisServer.HKEYS("online", (err, data) => {
             console.log(data)
             socket.emit('get-online-users', data)
         })
+    })
+    socket.on('new-private-chat', (data) => {
+        let privateData = {
+            participants: data.recieverId,
+            name: data.creator+'-'+data.recieverId,
+            creator: data.creator,
+            type: 'Private',
+            message: data.message || null,
+            image: data.image || null
+        }
+        roomHandler.createPrivateChat(privateData)
     })
     socket.on('private-chat', (data) => {
         chatNS.to(data.recieverSocket).emit('private chat', data.message)
