@@ -30,7 +30,7 @@ exports.createPrivateChat = async (data, req, res) => {
                 if (data.image !== undefined) {
                     chatData.imagePath = data.image
                 }
-                if (data.chat !== undefined) {
+                if (data.message !== undefined) {
                     chatData.message = data.message
                 }
                 model.Chats.create(chatData).then((res) => {

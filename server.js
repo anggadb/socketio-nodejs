@@ -97,8 +97,14 @@ chatNS.on('connection', (socket) => {
         }
         roomHandler.createPrivateChat(data)
     })
-    socket.on('private-chat', (data) => {
-        chatNS.to(data.recieverSocket).emit('private chat', data.message)
+    socket.on('chat', (data) => {
+        if (data.recieverSocket != null) {
+            if (data.message != null) {
+                chatNS.to(data.recieverSocket).emit('chat', data.message)
+            } else {
+                chatNS.to(data.recieverSocket).emit('chat', data.image)
+            }
+        }
         chatHandler.postChat({
             sender: data.sender,
             reciever: data.reciever,
@@ -110,32 +116,8 @@ chatNS.on('connection', (socket) => {
             console.log(socket.id + " is saying " + data.message + " to " + data.recieverSocket)
         }
     })
-    socket.on('create-room', (data) => {
-        socket.join(data.roomName)
-        roomHandler.createGroup({
-            participants: data.participants,
-            name: data.roomName,
-            creator: data.creator,
-            type: data.type
-        })
-        chatNS.to(data.roomName).emit('Welcome', "Welcome to " + data.roomName + ", " + socket.id)
-    })
     socket.on('leaving-room', (data) => {
         chatNS.to(data.roomName).emit('Group Announcement', data.username + " is left " + data.roomName)
-    })
-    socket.on('group-message', (data) => {
-        if (stage === 'development') {
-            console.log(socket.rooms)
-            console.log(from + " is says " + message)
-        }
-        chatNS.to(data.socketRoom).emit('group-message', data.message)
-        chatHandler.postChat({
-            sender: data.sender,
-            reciever: data.reciever,
-            chat: data.message || null,
-            image: data.imageName || null,
-            readers: [data.sender]
-        })
     })
 })
 server.listen(port, '0.0.0.0', (err) => {
