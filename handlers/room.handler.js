@@ -13,8 +13,14 @@ exports.createGroup = async (data) => {
     }
 }
 exports.createPrivateChat = async (data, req, res) => {
+    let privateData = {
+        participants: data.recieverId,
+        name: data.creator + '-' + data.recieverId,
+        creator: data.creator,
+        type: 'Private'
+    }
     try {
-        return model.Chatrooms.create(data).then((response) => {
+        return model.Chatrooms.create(privateData).then((response) => {
             if (response) {
                 let chatData = {
                     sender: data.creator,
