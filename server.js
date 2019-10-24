@@ -43,6 +43,12 @@ chatNS.on('connection', (socket) => {
             console.log(socket.id + " is left")
         }
     })
+    socket.on('off-socket', (userId) => {
+        if (stage === 'development') {
+            console.log(socket.id + " is left")
+        }
+        redisServer.HDEL('online', userId)
+    })
     socket.on('typing', (username) => {
         if (stage === "development") {
             console.log(username + " is typing")
@@ -118,6 +124,9 @@ chatNS.on('connection', (socket) => {
     })
     socket.on('leaving-room', (data) => {
         chatNS.to(data.roomName).emit('Group Announcement', data.username + " is left " + data.roomName)
+    })
+    socket.on('enter-group', (data) => {
+        socket.join(data.groupId)
     })
 })
 server.listen(port, '0.0.0.0', (err) => {
