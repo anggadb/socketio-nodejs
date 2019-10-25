@@ -134,6 +134,20 @@ chatNS.on('connection', (socket) => {
     socket.on('enter-group', (data) => {
         socket.join(data.groupId)
     })
+    socket.on('create-group', async (data) => {
+        let groupData = {
+            participants: data.participants,
+            name: data.name,
+            creator: data.id,
+            type: 'Group'
+        }
+        try {
+            return roomHandler.createGroup(groupData)
+        } catch (error) {
+            console.log(error.messages)
+            throw new Error()
+        }
+    })
 })
 server.listen(port, '0.0.0.0', (err) => {
     if (err) throw err
