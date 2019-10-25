@@ -43,17 +43,19 @@ chatNS.on('connection', (socket) => {
             console.log(socket.id + " is left")
         }
     })
-    socket.on('off-socket', (userId) => {
+    socket.on('off-socket', (data) => {
         if (stage === 'development') {
             console.log(socket.id + " is left")
         }
-        redisServer.HDEL('online', userId)
+        redisServer.HDEL('online', data.userId)
     })
-    socket.on('typing', (username) => {
+    socket.on('typing', (data) => {
         if (stage === "development") {
-            console.log(username + " is typing")
+            console.log(data.username + " is typing")
         }
-        socket.broadcast.emit('typing', username + " is typing")
+        if (data.recieverSocket != undefined) {
+            chatNS.to(data.recieverSocket).emit('typing', data.username + " is typing")
+        }
     })
     socket.on('isRead', (username) => {
         socket.emit('isRead', {
@@ -61,16 +63,10 @@ chatNS.on('connection', (socket) => {
             sender: username
         })
     })
-    socket.on('off', (data) => {
-        redisServer.DEL("user:" + data.userId)
-        if (stage === "development") {
-            console.log(data.username + " is off")
-        }
-    })
     socket.on('activated', (data) => {
         let user = {
             name: data.username,
-            id: data.id,
+            id: data.userId,
             socketId: socket.id
         }
         redisServer.HEXISTS("online", data.id, (err, res) => {
@@ -78,19 +74,29 @@ chatNS.on('connection', (socket) => {
                 if (stage === "development") {
                     console.log("User haven't saved")
                 }
-                redisServer.HSET("online", data.id, JSON.stringify(user))
+                redisServer.HSET("online", data.userId, JSON.stringify(user))
                 if (stage === "development") {
-                    redisServer.HGET("online", data.id, (err, res) => {
+                    redisServer.HGET("online", data.userId, (err, res) => {
                         console.log(res)
                     })
                 }
             }
         })
     })
-    socket.on('get-online-users', () => {
-        redisServer.HKEYS("online", (err, data) => {
-            console.log(data)
-            socket.emit('get-online-users', data)
+    socket.on('get-online-users', (data) => {
+        redisServer.HKEYS("online", (err, res) => {
+            if (stage === 'development') {
+                console.log(res)
+            }
+            chatNS.to(data.senderSocket).emit('get-online-users', res)
+        })
+    })
+    socket.on('detail-user', (data) => {
+        redisServer.HGET('online', data.userId, (err, res) => {
+            if (stage === 'development') {
+                console.log(res)
+            }
+            chatNS.to(data.senderSocket).emit('detail-user', res)
         })
     })
     socket.on('new-private-chat', (data) => {
