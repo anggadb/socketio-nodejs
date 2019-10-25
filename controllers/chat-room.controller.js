@@ -2,10 +2,15 @@ import model from '../models/index'
 import operator from 'sequelize'
 
 let op = operator.Op
+let Sequelize = new operator('chattdb', 'root', 'password', {
+    host: 'localhost',
+    dialect: 'mysql'
+})
 
-exports.getAllRooms = async (req, res) => {
+exports.getPrivateRooms = async (req, res) => {
+    let activeId = req.query.id
     try {
-        let data = await model.Chatrooms.findAll()
+        let data = await Sequelize.query("SELECT Users.name AS roomName, Chatrooms.id, Chatrooms.participants, Chatrooms.creator FROM Users INNER JOIN Chatrooms ON Chatrooms.participants=Users.id WHERE NOT Users.id=" + activeId, { type: operator.QueryTypes.SELECT })
         if (data != 0) {
             return res.status(200).send(data)
         } else {

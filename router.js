@@ -5,7 +5,7 @@ import chatController from './controllers/chat.controller'
 let router = require('express').Router()
 
 // Room routes
-router.get('/getAllRooms', roomController.getAllRooms)
+router.get('/getPrivateRooms', roomController.getPrivateRooms)
 
 // User routes
 router.get('/getAllUsers', userController.getAllUsers)
