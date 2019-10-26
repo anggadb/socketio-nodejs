@@ -6,6 +6,7 @@ import socketio from 'socket.io'
 import socketRedis from 'socket.io-redis'
 import redis from 'redis'
 import path from 'path'
+import fs, { write } from 'fs'
 
 import router from './router'
 import chatHandler from './handlers/chat.handler'
@@ -46,6 +47,9 @@ chatNS.on('connection', (socket) => {
     socket.on('off-socket', (data) => {
         if (stage === 'development') {
             console.log(socket.id + " is left")
+        }
+        if (data.groupId !== undefined) {
+            socket.leave(data.groupId)
         }
         redisServer.HDEL('online', data.userId)
     })
@@ -110,13 +114,17 @@ chatNS.on('connection', (socket) => {
         roomHandler.createPrivateChat(data)
     })
     socket.on('chat', (data) => {
-        if (data.recieverSocket != null) {
-            if (data.message != null) {
-                chatNS.to(data.recieverSocket).emit('chat', data.message)
-            } else {
-                chatNS.to(data.recieverSocket).emit('chat', data.image)
-            }
-        }
+        // if(data.image !== undefined){
+        //     const filename = __dirname + '/assets' + data.sender
+        //     fs.open(filename, 'a', 0755, (err, res) => {
+        //         if(err) throw err
+        //         fs.write(res, data.image, null, 'Binary', (err, written, buff) => {
+        //             fs.close(fd, () => {
+        //                 console.log("File has saved")
+        //             })
+        //         })
+        //     })
+        // }
         chatHandler.postChat({
             sender: data.sender,
             reciever: data.reciever,
@@ -124,6 +132,13 @@ chatNS.on('connection', (socket) => {
             imagePath: data.imageName || null,
             readers: [data.sender]
         })
+        if (data.recieverSocket != null) {
+            if (data.message != null) {
+                chatNS.to(data.recieverSocket).emit('chat', data.message)
+            } else {
+                chatNS.to(data.recieverSocket).emit('chat', data.image)
+            }
+        }
         if (stage === "development") {
             console.log(socket.id + " is saying " + data.message + " to " + data.recieverSocket)
         }

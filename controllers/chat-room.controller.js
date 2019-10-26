@@ -9,7 +9,7 @@ let Sequelize = new operator(config.database, config.username, config.password, 
 exports.getPrivateRooms = async (req, res) => {
     let activeId = req.query.id
     try {
-        let data = await Sequelize.query("SELECT Users.name AS roomName, Chatrooms.id, Chatrooms.participants, Chatrooms.creator FROM Users INNER JOIN Chatrooms ON Chatrooms.participants=Users.id OR Chatrooms.creator=Users.id WHERE NOT Users.id=" + activeId, { type: operator.QueryTypes.SELECT })
+        let data = await Sequelize.query("SELECT Users.name AS roomName, Users.id AS userId, Chatrooms.id, Chatrooms.participants, Chatrooms.creator FROM Users INNER JOIN Chatrooms ON Chatrooms.participants=Users.id OR Chatrooms.creator=Users.id WHERE NOT Users.id="+ activeId +" AND(Chatrooms.participants="+ activeId +" OR Chatrooms.creator="+ activeId +")", { type: operator.QueryTypes.SELECT })
         if (data != 0) {
             return res.status(200).send(data)
         } else {
