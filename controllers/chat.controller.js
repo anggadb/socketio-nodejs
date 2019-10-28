@@ -5,12 +5,22 @@ let op = operator.Op
 
 exports.getMessageByRoom = async (req, res) => {
     let userId = req.query.id
+    let offset = req.query.offset || undefined
+    let limit = req.query.limit || undefined
+    let query = {
+        where: {
+            reciever: userId
+        }
+    }
+    if(offset !== undefined){
+        query.offset = Number(offset)
+    }
+    if(limit !== undefined){
+        query.limit = Number(limit)
+    }
+    console.log(query)
     try {
-        let data = await model.Chats.findAll({
-            where: {
-                reciever: userId
-            }
-        })
+        let data = await model.Chats.findAll(query)
         if (data) {
             return res.status(200).send(data)
         } else {

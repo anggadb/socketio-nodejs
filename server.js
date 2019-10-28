@@ -73,96 +73,96 @@ chatNS.on('connection', (socket) => {
             id: data.userId,
             socketId: socket.id
         }
-        redisServer.HEXISTS("online", data.id, (err, res) => {
-            if (res == false) {
-                if (stage === "development") {
-                    console.log("User haven't saved")
-                }
-                redisServer.HSET("online", data.userId, JSON.stringify(user))
-                if (stage === "development") {
-                    redisServer.HGET("online", data.userId, (err, res) => {
-                        console.log(res)
-                    })
-                }
-            }
-        })
-    })
-    socket.on('get-online-users', (data) => {
-        redisServer.HKEYS("online", (err, res) => {
-            if (stage === 'development') {
-                console.log(res)
-            }
-            chatNS.to(data.senderSocket).emit('get-online-users', res)
-        })
-    })
-    socket.on('detail-user', (data) => {
-        redisServer.HGET('online', data.userId, (err, res) => {
-            if (stage === 'development') {
-                console.log(res)
-            }
-            chatNS.to(data.senderSocket).emit('detail-user', res)
-        })
-    })
-    socket.on('new-private-chat', (data) => {
-        if (data.recieverSocket != null) {
-            if (data.message != null) {
-                chatNS.to(data.recieverSocket).emit('new-private-chat', data.message)
-            } else {
-                chatNS.to(data.recieverSocket).emit('new-private-chat', data.image)
-            }
-        }
-        roomHandler.createPrivateChat(data)
-    })
-    socket.on('chat', (data) => {
-        // if(data.image !== undefined){
-        //     const filename = __dirname + '/assets' + data.sender
-        //     fs.open(filename, 'a', 0755, (err, res) => {
-        //         if(err) throw err
-        //         fs.write(res, data.image, null, 'Binary', (err, written, buff) => {
-        //             fs.close(fd, () => {
-        //                 console.log("File has saved")
-        //             })
-        //         })
-        //     })
-        // }
-        chatHandler.postChat({
-            sender: data.sender,
-            reciever: data.reciever,
-            message: data.message || null,
-            imagePath: data.imageName || null,
-            readers: [data.sender]
-        })
-        if (data.recieverSocket != null) {
-            if (data.message != null) {
-                chatNS.to(data.recieverSocket).emit('chat', data.message)
-            } else {
-                chatNS.to(data.recieverSocket).emit('chat', data.image)
-            }
-        }
+        redisServer.HSET("online", data.userId, JSON.stringify(user))
         if (stage === "development") {
-            console.log(socket.id + " is saying " + data.message + " to " + data.recieverSocket)
+            redisServer.HGET("online", data.userId, (err, res) => {
+                console.log(res)
+            })
         }
+        socket.emit('activated', socket.id)
     })
-    socket.on('leaving-room', (data) => {
-        chatNS.to(data.roomName).emit('Group Announcement', data.username + " is left " + data.roomName)
-    })
-    socket.on('enter-group', (data) => {
-        socket.join(data.groupId)
-    })
-    socket.on('create-group', async (data) => {
-        let groupData = {
-            participants: data.participants,
-            name: data.name,
-            creator: data.id,
-            type: 'Group'
+socket.on('get-online-users', (data) => {
+    redisServer.HKEYS("online", (err, res) => {
+        if (stage === 'development') {
+            console.log(res)
         }
-        try {
-            return roomHandler.createGroup(groupData)
-        } catch (error) {
-            console.log(error.messages)
-            throw new Error()
-        }
+        socket.emit('get-online-users', res)
     })
+})
+socket.on('detail-user', (data) => {
+    redisServer.HGET('online', data.userId, (err, res) => {
+        if (stage === 'development') {
+            console.log(res)
+        }
+        socket.emit('detail-user', res)
+    })
+})
+socket.on('check-online', (data) => {
+    redisServer.HEXISTS("online", data.userId, (err, res) => {
+        if (err) throw err
+        socket.emit('check-online', res)
+    })
+})
+socket.on('new-private-chat', (data) => {
+    if (data.recieverSocket != null) {
+        if (data.message != null) {
+            chatNS.to(data.recieverSocket).emit('new-private-chat', data.message)
+        } else {
+            chatNS.to(data.recieverSocket).emit('new-private-chat', data.image)
+        }
+    }
+    roomHandler.createPrivateChat(data)
+})
+socket.on('chat', (data) => {
+    // if(data.image !== undefined){
+    //     const filename = __dirname + '/assets' + data.sender
+    //     fs.open(filename, 'a', 0755, (err, res) => {
+    //         if(err) throw err
+    //         fs.write(res, data.image, null, 'Binary', (err, written, buff) => {
+    //             fs.close(fd, () => {
+    //                 console.log("File has saved")
+    //             })
+    //         })
+    //     })
+    // }
+    chatHandler.postChat({
+        sender: data.sender,
+        reciever: data.reciever,
+        message: data.message || null,
+        imagePath: data.imageName || null,
+        readers: [data.sender]
+    })
+    if (data.recieverSocket != null) {
+        if (data.message != null) {
+            chatNS.to(data.recieverSocket).emit('chat', data.message)
+        } else {
+            chatNS.to(data.recieverSocket).emit('chat', data.image)
+        }
+    }
+    if (stage === "development") {
+        console.log(socket.id + " is saying " + data.message + " to " + data.recieverSocket)
+    }
+})
+socket.on('leaving-room', (data) => {
+    chatNS.to(data.roomName).emit('Group Announcement', data.username + " is left " + data.roomName)
+})
+socket.on('enter-group', (data) => {
+    socket.join(data.groupId)
+})
+socket.on('create-group', async (data) => {
+    let groupData = {
+        participants: data.participants,
+        name: data.name,
+        creator: data.id,
+        type: 'Group'
+    }
+    try {
+        return roomHandler.createGroup(groupData)
+    } catch (error) {
+        console.log(error.messages)
+        throw new Error()
+    }
+})
 })
 server.listen(port, '0.0.0.0', (err) => {
     if (err) throw err
