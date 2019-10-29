@@ -6,12 +6,6 @@ const config = require(__dirname + '/../config/config.json')[env];
 const Sequelize = new sequelize(config.database, config.username, config.password, config);
 
 exports.postChat = async (data, req, res) => {
-    if (data.image !== undefined) {
-        data.imagePath = image
-    }
-    if (data.chat !== undefined) {
-        data.message = message
-    }
     try {
         return model.Chats.create(data).then((response) => {
             if (!response) {
@@ -39,4 +33,14 @@ exports.messageRead = async (readerId, groupId, req, res) => {
             error: error.messages
         })
     }
+}
+exports.decodeBase64Image = (data) => {
+    let response = {}
+    const matches = data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/)
+    if(matches.length !== 3){
+        return new Error('Invalid input string')
+    }
+    response.type = matches[1]
+    response.data = new Buffer(matches[2], 'base64')
+    return response
 }

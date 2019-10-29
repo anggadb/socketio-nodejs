@@ -6,7 +6,7 @@ import socketio from 'socket.io'
 import socketRedis from 'socket.io-redis'
 import redis from 'redis'
 import path from 'path'
-import fs, { write } from 'fs'
+import fs from 'fs'
 
 import router from './router'
 import chatHandler from './handlers/chat.handler'
@@ -23,6 +23,7 @@ app.use(process.env.API_PREFIX, router)
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname + '/index.html'))
 })
+app.use('/image', express.static(path.join(__dirname + '/assets')))
 
 let stage = process.argv[3] || "development"
 let port = parseInt(process.argv[2]) || process.env.PORT
@@ -52,6 +53,7 @@ chatNS.on('connection', (socket) => {
             socket.leave(data.groupId)
         }
         redisServer.HDEL('online', data.userId)
+        socket.emit('off-socket', "User with id : " + data.userId + " is left")
     })
     socket.on('typing', (data) => {
         if (stage === "development") {
@@ -63,7 +65,7 @@ chatNS.on('connection', (socket) => {
     })
     socket.on('isRead', async (data) => {
         let res = await chatHandler.messageRead(data.userId, data.roomId)
-        if(res){
+        if (res) {
             return socket.emit('isRead', "All messages in chatroom are readed")
         }
     })
@@ -81,88 +83,119 @@ chatNS.on('connection', (socket) => {
         }
         socket.emit('activated', socket.id)
     })
-socket.on('get-online-users', () => {
-    redisServer.HKEYS("online", (err, res) => {
-        if (stage === 'development') {
-            console.log(res)
-        }
-        socket.emit('get-online-users', res)
+    socket.on('get-online-users', () => {
+        redisServer.HKEYS("online", (err, res) => {
+            if (stage === 'development') {
+                console.log(res)
+            }
+            socket.emit('get-online-users', res)
+        })
     })
-})
-socket.on('detail-user', (data) => {
-    redisServer.HGET('online', data.userId, (err, res) => {
-        if (stage === 'development') {
-            console.log(res)
-        }
-        socket.emit('detail-user', res)
+    socket.on('detail-user', (data) => {
+        redisServer.HGET('online', data.userId, (err, res) => {
+            if (stage === 'development') {
+                console.log(res)
+            }
+            socket.emit('detail-user', res)
+        })
     })
-})
-socket.on('check-online', (data) => {
-    redisServer.HEXISTS("online", data.userId, (err, res) => {
-        if (err) throw err
-        socket.emit('check-online', res)
+    socket.on('check-online', (data) => {
+        redisServer.HEXISTS("online", data.userId, (err, res) => {
+            if (err) throw err
+            socket.emit('check-online', res)
+        })
     })
-})
-socket.on('new-private-chat', (data) => {
-    if (data.recieverSocket != null) {
-        if (data.message != null) {
-            chatNS.to(data.recieverSocket).emit('new-private-chat', data.message)
-        } else {
-            chatNS.to(data.recieverSocket).emit('new-private-chat', data.image)
+    socket.on('new-private-chat', (data) => {
+        if (data.recieverSocket != null) {
+            if (data.message != null) {
+                chatNS.to(data.recieverSocket).emit('new-private-chat', data.message)
+            } else {
+                chatNS.to(data.recieverSocket).emit('new-private-chat', data.image)
+            }
         }
-    }
-    roomHandler.createPrivateChat(data)
-})
-socket.on('chat', (data) => {
-    // if(data.image !== undefined){
-    //     const filename = __dirname + '/assets' + data.sender
-    //     fs.open(filename, 'a', 0755, (err, res) => {
-    //         if(err) throw err
-    //         fs.write(res, data.image, null, 'Binary', (err, written, buff) => {
-    //             fs.close(fd, () => {
-    //                 console.log("File has saved")
-    //             })
-    //         })
-    //     })
-    // }
-    chatHandler.postChat({
-        sender: data.sender,
-        reciever: data.reciever,
-        message: data.message || null,
-        imagePath: data.imageName || null,
-        readers: [data.sender]
+        roomHandler.createPrivateChat(data)
     })
-    if (data.recieverSocket != null) {
-        if (data.message != null) {
-            chatNS.to(data.recieverSocket).emit('chat', data.message)
-        } else {
-            chatNS.to(data.recieverSocket).emit('chat', data.image)
+    socket.on('chat', (data) => {
+        chatHandler.postChat({
+            sender: data.sender,
+            reciever: data.reciever,
+            message: data.message || null,
+            imagePath: data.imageName || null,
+            readers: [data.sender]
+        })
+        if (data.recieverSocket != null) {
+            if (data.message != null) {
+                chatNS.to(data.recieverSocket).emit('chat', data.message)
+            } else {
+                chatNS.to(data.recieverSocket).emit('chat', data.image)
+            }
         }
-    }
-    if (stage === "development") {
-        console.log(socket.id + " is saying " + data.message + " to " + data.recieverSocket)
-    }
-})
-socket.on('leaving-room', (data) => {
-    chatNS.to(data.roomName).emit('Group Announcement', data.username + " is left " + data.roomName)
-})
-socket.on('enter-group', (data) => {
-    socket.join(data.groupId)
-})
-socket.on('create-group', async (data) => {
-    let groupData = {
-        participants: data.participants,
-        name: data.name,
-        creator: data.id,
-        type: 'Group'
-    }
-    try {
-        return roomHandler.createGroup(groupData)
-    } catch (error) {
-        console.log(error.messages)
-        throw new Error()
-    }
-})
+        if (stage === "development") {
+            console.log(socket.id + " is saying " + data.message + " to " + data.recieverSocket)
+        }
+    })
+    socket.on('leaving-room', (data) => {
+        chatNS.to(data.roomName).emit('Group Announcement', data.username + " is left " + data.roomName)
+    })
+    socket.on('enter-group', (data) => {
+        socket.join(data.groupId)
+    })
+    socket.on('create-group', async (data) => {
+        let groupData = {
+            participants: data.participants,
+            name: data.name,
+            creator: data.id,
+            type: 'Group'
+        }
+        try {
+            return roomHandler.createGroup(groupData)
+        } catch (error) {
+            console.log(error.messages)
+            throw new Error()
+        }
+    })
+    socket.on('send-image', (data) => {
+        const base64Data = chatHandler.decodeBase64Image(data.image)
+        let fileName = data.imageName + new Date().toISOString() + ".jpg"
+        let imagePath = "/image/" + data.userId + "/" + fileName
+        fs.exists(__dirname + '/assets/' + data.userId, async (exists) => {
+            if (!exists) {
+                fs.mkdir(__dirname + "/assets/" + data.userId + '/', (e) => {
+                    if (!e) {
+                        fs.writeFile(__dirname + '/assets/' + data.userId + "/" + fileName, base64Data.data, (err) => {
+                            if (err) {
+                                console.log(err)
+                                throw err
+                            }
+                        })
+                    } else {
+                        console.log("Error while saving image")
+                        throw e
+                    }
+                })
+            } else {
+                fs.writeFile(__dirname + '/assets/' + data.userId + "/" + fileName, base64Data.data, (err) => {
+                    if (err) {
+                        console.log(err)
+                        throw err
+                    }
+                })
+            }
+            let callback = await chatHandler.postChat({
+                sender: data.userId,
+                reciever: data.reciever,
+                imagePath: imagePath,
+                readers: [data.userId]
+            })
+            if (callback) {
+                if (data.recieverSocket != null) {
+                    chatNS.to(data.recieverSocket).emit('send-image', imagePath)
+                }
+            } else {
+                socket.emit('send-image', "Gagal")
+            }
+        })
+    })
 })
 server.listen(port, '0.0.0.0', (err) => {
     if (err) throw err
