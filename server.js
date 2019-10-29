@@ -61,8 +61,11 @@ chatNS.on('connection', (socket) => {
             chatNS.to(data.recieverSocket).emit('typing', data.username + " is typing")
         }
     })
-    socket.on('isRead', (username) => {
-        
+    socket.on('isRead', async (data) => {
+        let res = await chatHandler.messageRead(data.userId, data.roomId)
+        if(res){
+            return socket.emit('isRead', "All messages in chatroom are readed")
+        }
     })
     socket.on('activated', (data) => {
         let user = {
