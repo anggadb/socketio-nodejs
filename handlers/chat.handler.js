@@ -20,9 +20,9 @@ exports.postChat = async (data, req, res) => {
         })
     }
 }
-exports.messageRead = async (chatId, req, res) => {
+exports.messageRead = async (readerId, groupId, req, res) => {
     try {
-        sequelize.query("UPDATE Chats SET readers = JSON_ARRAY_APPEND (readers, '$'," + chatId + ")", null, { raw: true }).success((data) => {
+        sequelize.query("UPDATE Chats SET readers = JSON_ARRAY_APPEND(readers, '$'," + Number(readerId) + ") WHERE reciever=" + groupId + " AND NOT JSON_CONTAINS(readers, " + readerId + ")", null, { raw: true }).success((data) => {
             console.log(data)
         })
     } catch (error) {

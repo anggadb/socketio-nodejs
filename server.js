@@ -62,10 +62,7 @@ chatNS.on('connection', (socket) => {
         }
     })
     socket.on('isRead', (username) => {
-        socket.emit('isRead', {
-            isRead: true,
-            sender: username
-        })
+        
     })
     socket.on('activated', (data) => {
         let user = {
@@ -81,7 +78,7 @@ chatNS.on('connection', (socket) => {
         }
         socket.emit('activated', socket.id)
     })
-socket.on('get-online-users', (data) => {
+socket.on('get-online-users', () => {
     redisServer.HKEYS("online", (err, res) => {
         if (stage === 'development') {
             console.log(res)
