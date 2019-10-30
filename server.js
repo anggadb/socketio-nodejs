@@ -6,7 +6,6 @@ import socketio from 'socket.io'
 import socketRedis from 'socket.io-redis'
 import redis from 'redis'
 import path from 'path'
-import fs from 'fs'
 
 import router from './router'
 import chatHandler from './handlers/chat.handler'
@@ -105,12 +104,22 @@ chatNS.on('connection', (socket) => {
             socket.emit('check-online', res)
         })
     })
-    socket.on('chat', (data) => {
+    socket.on('chat', async (data) => {
+        if (data.image != null) {
+            const base64Data = chatHandler.decodeBase64Image(data.image)
+            let fileName = data.imageName + new Date().toISOString() + ".jpg"
+            const saveImage = await chatHandler.saveImage(data.userId, fileName, base64Data)
+            if (saveImage) {
+                data.imagePath = "/image/" + data.userId + "/" + fileName
+            } else {
+                throw Error("Gagal menyimpan")
+            }
+        }
         if (data.recieverSocket != null) {
             if (data.message != null) {
-                chatNS.to(data.recieverSocket).emit('new-private-chat', data.message)
+                chatNS.to(data.recieverSocket).emit('chat', data.message)
             } else {
-                chatNS.to(data.recieverSocket).emit('new-private-chat', data.image)
+                chatNS.to(data.recieverSocket).emit('chat', data.image)
             }
         }
         roomHandler.createPrivateChat(data)
@@ -134,48 +143,6 @@ chatNS.on('connection', (socket) => {
             console.log(error.messages)
             throw new Error()
         }
-    })
-    socket.on('send-image', (data) => {
-        const base64Data = chatHandler.decodeBase64Image(data.image)
-        let fileName = data.imageName + new Date().toISOString() + ".jpg"
-        let imagePath = "/image/" + data.userId + "/" + fileName
-        fs.exists(__dirname + '/assets/' + data.userId, async (exists) => {
-            if (!exists) {
-                fs.mkdir(__dirname + "/assets/" + data.userId + '/', (e) => {
-                    if (!e) {
-                        fs.writeFile(__dirname + '/assets/' + data.userId + "/" + fileName, base64Data.data, (err) => {
-                            if (err) {
-                                console.log(err)
-                                throw err
-                            }
-                        })
-                    } else {
-                        console.log("Error while saving image")
-                        throw e
-                    }
-                })
-            } else {
-                fs.writeFile(__dirname + '/assets/' + data.userId + "/" + fileName, base64Data.data, (err) => {
-                    if (err) {
-                        console.log(err)
-                        throw err
-                    }
-                })
-            }
-            let callback = await chatHandler.postChat({
-                sender: data.userId,
-                reciever: data.reciever,
-                imagePath: imagePath,
-                readers: [data.userId]
-            })
-            if (callback) {
-                if (data.recieverSocket != null) {
-                    chatNS.to(data.recieverSocket).emit('send-image', imagePath)
-                }
-            } else {
-                socket.emit('send-image', "Gagal")
-            }
-        })
     })
 })
 server.listen(port, '0.0.0.0', (err) => {

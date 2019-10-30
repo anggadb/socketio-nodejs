@@ -28,8 +28,8 @@ exports.createPrivateChat = async (data, req, res) => {
                         reciever: response.id,
                         readers: [data.creator]
                     }
-                    if (data.image !== undefined) {
-                        chatData.imagePath = data.image
+                    if (data.imagePath !== undefined) {
+                        chatData.imagePath = data.imagePath
                     }
                     if (data.message !== undefined) {
                         chatData.message = data.message
