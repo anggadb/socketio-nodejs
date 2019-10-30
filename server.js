@@ -105,7 +105,7 @@ chatNS.on('connection', (socket) => {
             socket.emit('check-online', res)
         })
     })
-    socket.on('new-private-chat', (data) => {
+    socket.on('chat', (data) => {
         if (data.recieverSocket != null) {
             if (data.message != null) {
                 chatNS.to(data.recieverSocket).emit('new-private-chat', data.message)
@@ -114,25 +114,6 @@ chatNS.on('connection', (socket) => {
             }
         }
         roomHandler.createPrivateChat(data)
-    })
-    socket.on('chat', (data) => {
-        chatHandler.postChat({
-            sender: data.sender,
-            reciever: data.reciever,
-            message: data.message || null,
-            imagePath: data.imageName || null,
-            readers: [data.sender]
-        })
-        if (data.recieverSocket != null) {
-            if (data.message != null) {
-                chatNS.to(data.recieverSocket).emit('chat', data.message)
-            } else {
-                chatNS.to(data.recieverSocket).emit('chat', data.image)
-            }
-        }
-        if (stage === "development") {
-            console.log(socket.id + " is saying " + data.message + " to " + data.recieverSocket)
-        }
     })
     socket.on('leaving-room', (data) => {
         chatNS.to(data.roomName).emit('Group Announcement', data.username + " is left " + data.roomName)
