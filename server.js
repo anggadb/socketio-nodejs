@@ -113,10 +113,10 @@ chatNS.on('connection', (socket) => {
             data.imagePath = "/image/" + data.creator + "/" + fileName
         }
         if (data.recieverSocket != null) {
-            if (data.message != null) {
+            if (data.imagePath == null) {
                 chatNS.to(data.recieverSocket).emit('chat', data.message)
             } else {
-                chatNS.to(data.recieverSocket).emit('chat', data.image)
+                chatNS.to(data.recieverSocket).emit('chat', data.imagePath)
             }
         }
         roomHandler.createPrivateChat(data)
@@ -146,4 +146,3 @@ server.listen(port, '0.0.0.0', (err) => {
     if (err) throw err
     console.log("Server berjalan di port " + port + " dengan status " + stage)
 })
-

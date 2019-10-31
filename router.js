@@ -6,6 +6,7 @@ let router = require('express').Router()
 
 // Room routes
 router.get('/getPrivateRooms', roomController.getPrivateRooms)
+router.post('/postCreateGroup', roomController.postCreateGroup)
 
 // User routes
 router.get('/getAllUsers', userController.getAllUsers)
