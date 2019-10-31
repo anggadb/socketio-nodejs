@@ -55,7 +55,10 @@ exports.createPrivateChat = async (data, req, res) => {
             if (data.message !== undefined) {
                 chatData.message = data.message
             }
-            return model.Chats.create()
+            let chatRes = await  model.Chats.create(chatData)
+            if(!chatRes){
+                throw Error()
+            }
         }
     } catch (e) {
         console.log(e.messages)

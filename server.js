@@ -10,6 +10,7 @@ import path from 'path'
 import router from './router'
 import chatHandler from './handlers/chat.handler'
 import roomHandler from './handlers/room.handler'
+import helper from './helper'
 
 let app = express()
 let redisServer = redis.createClient(6379)
@@ -106,14 +107,10 @@ chatNS.on('connection', (socket) => {
     })
     socket.on('chat', async (data) => {
         if (data.image != null) {
-            const base64Data = chatHandler.decodeBase64Image(data.image)
+            const base64Data = helper.decodeBase64Image(data.image)
             let fileName = data.imageName + new Date().toISOString() + ".jpg"
-            const saveImage = await chatHandler.saveImage(data.userId, fileName, base64Data)
-            if (saveImage) {
-                data.imagePath = "/image/" + data.userId + "/" + fileName
-            } else {
-                throw Error("Gagal menyimpan")
-            }
+            helper.saveImage(data.creator, fileName, base64Data)
+            data.imagePath = "/image/" + data.creator + "/" + fileName
         }
         if (data.recieverSocket != null) {
             if (data.message != null) {
@@ -149,3 +146,4 @@ server.listen(port, '0.0.0.0', (err) => {
     if (err) throw err
     console.log("Server berjalan di port " + port + " dengan status " + stage)
 })
+
