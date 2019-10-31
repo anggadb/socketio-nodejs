@@ -46,7 +46,7 @@ exports.createPrivateChat = async (data, req, res) => {
         } else {
             let chatData = {
                 sender: data.creator,
-                reciever: response.id,
+                reciever: data.roomId,
                 readers: [data.creator]
             }
             if (data.image !== undefined) {

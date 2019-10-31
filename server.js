@@ -112,14 +112,18 @@ chatNS.on('connection', (socket) => {
             helper.saveImage(data.creator, fileName, base64Data)
             data.imagePath = "/image/" + data.creator + "/" + fileName
         }
-        if (data.recieverSocket != null) {
-            if (data.imagePath == null) {
-                chatNS.to(data.recieverSocket).emit('chat', data.message)
-            } else {
-                chatNS.to(data.recieverSocket).emit('chat', data.imagePath)
+        let res = await roomHandler.createPrivateChat(data)
+        if (res) {
+            if (data.recieverSocket != null) {
+                if (data.imagePath == null) {
+                    return chatNS.to(data.recieverSocket).emit('chat', data.message)
+                } else {
+                    return chatNS.to(data.recieverSocket).emit('chat', data.imagePath)
+                }
             }
+        } else {
+            return socket.emit('chat', "Data gagal di simpan ke database")
         }
-        roomHandler.createPrivateChat(data)
     })
     socket.on('leaving-room', (data) => {
         chatNS.to(data.roomName).emit('Group Announcement', data.username + " is left " + data.roomName)
