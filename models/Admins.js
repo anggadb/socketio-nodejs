@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('Users', {
+  return sequelize.define('Admins', {
     id: {
       type: DataTypes.INTEGER(11),
       allowNull: false,
@@ -10,21 +10,15 @@ module.exports = function(sequelize, DataTypes) {
     },
     name: {
       type: DataTypes.STRING(255),
-      allowNull: false
+      allowNull: true
     },
     password: {
       type: DataTypes.STRING(255),
-      allowNull: false
+      allowNull: true
     },
     email: {
       type: DataTypes.STRING(255),
-      allowNull: true,
-      unique: true
-    },
-    nik: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-      unique: true
+      allowNull: true
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -35,12 +29,8 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
-    },
-    lastOnline: {
-      type: DataTypes.DATE,
-      allowNull: true
     }
   }, {
-    tableName: 'Users'
+    tableName: 'Admins'
   });
 };
